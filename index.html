@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Drup – Aperçu</title>
+  <meta name="description" content="Bienvenue sur Drup – La vente qui baisse jusqu'à ce que vous craquiez.">
+  <link rel="icon" href="/logo.png">
+  <style>
+    :root {
+      --blue:#2563EB; --orange:#F97316; --bg:#F9FAFB; --text:#111827;
+    }
+    *{box-sizing:border-box}
+    body{margin:0; font-family:Inter,system-ui,Arial,sans-serif; background:var(--bg); color:var(--text);}
+    header{background:white; border-bottom:1px solid #E5E7EB; position:sticky; top:0; z-index:10}
+    .container{max-width:1100px; margin:0 auto; padding:16px;}
+    .brand{display:flex; align-items:center; gap:12px; font-weight:700; font-size:20px; color:var(--blue)}
+    .brand img{height:32px}
+    .hero{padding:32px 0; text-align:center}
+    h1{margin:0 0 8px 0; font-size:24px}
+    .grid{display:grid; grid-template-columns:repeat(3,1fr); gap:16px}
+    @media (max-width:900px){.grid{grid-template-columns:1fr 1fr}}
+    @media (max-width:640px){.grid{grid-template-columns:1fr}}
+    .card{background:#fff; border:1px solid #E5E7EB; border-radius:12px; padding:16px; display:flex; flex-direction:column; gap:8px}
+    .thumb{background:#F3F4F6; border-radius:8px; height:140px; display:flex; align-items:center; justify-content:center; color:#6B7280; font-weight:600}
+    .price{font-size:18px; font-weight:700}
+    .timer{font-variant-numeric:tabular-nums; background:#EEF2FF; color:#1E3A8A; padding:6px 10px; border-radius:999px; display:inline-block}
+    .buy{background:var(--orange); color:white; padding:10px 14px; border:none; border-radius:10px; cursor:pointer; font-weight:700}
+    section{margin:28px 0}
+    .muted{color:#6B7280}
+    footer{padding:24px 0; color:#6B7280}
+    .soon{background:#FFF7ED; border:1px dashed #FDBA74; border-radius:10px; padding:12px}
+    .soon h3{margin:0 0 8px 0}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container brand">
+      <img src="/logo.png" alt="Drup" />
+      <span>DRUP</span>
+    </div>
+  </header>
+  <main class="container">
+    <section class="hero">
+      <h1>Bienvenue sur Drup – La vente qui baisse jusqu'à ce que vous craquiez.</h1>
+      <p class="muted">Aperçu statique de l'interface pendant que le build complet se termine.</p>
+    </section>
+
+    <section>
+      <h2>En vente maintenant</h2>
+      <div class="grid" id="live-grid"></div>
+    </section>
+
+    <section class="soon">
+      <h3>À venir sur Drup</h3>
+      <ul id="soon-list" class="muted"></ul>
+    </section>
+
+    <section>
+      <h2>Drup passés</h2>
+      <ul class="muted">
+        <li>Montre Fossil — vendue à 58 EUR à 14:22</li>
+        <li>Casque JBL — vendue à 72 EUR à 13:51</li>
+      </ul>
+    </section>
+  </main>
+  <footer class="container">© Drup — MVP aperçu</footer>
+
+<script>
+const products = [
+  { id:1, name:"Sneakers Nike Dunk (Neuf)", start:120, min:80, seconds:600 },
+  { id:2, name:"Casque JBL 750BT (Occasion A)", start:95,  min:60, seconds:600 },
+  { id:3, name:"Montre Seiko 5 (Occasion B)", start:180, min:120,seconds:600 }
+];
+
+const liveGrid = document.getElementById('live-grid');
+
+function fmt(n){ return new Intl.NumberFormat('fr-FR',{minimumFractionDigits:2, maximumFractionDigits:2}).format(n); }
+function pad(n){ return n.toString().padStart(2,'0'); }
+
+function renderCard(p){
+  const card = document.createElement('div');
+  card.className = 'card';
+  card.innerHTML = `
+    <div class="thumb">Image</div>
+    <strong>${p.name}</strong>
+    <div class="price"><span id="price-${p.id}">${fmt(p.start)}</span> EUR</div>
+    <div class="timer"><span id="t-${p.id}">10:00</span> restantes</div>
+    <button class="buy" id="b-${p.id}">Acheter maintenant</button>
+  `;
+  liveGrid.appendChild(card);
+
+  let t = p.seconds;
+  const step = (p.start - p.min) / p.seconds;
+
+  const btn = card.querySelector('#b-'+p.id);
+  let locked = false;
+  btn.addEventListener('click', () => {
+    if (locked) return;
+    locked = true;
+    btn.textContent = "Prix bloqué 15 min (simulation)";
+    btn.disabled = true;
+  });
+
+  const iv = setInterval(()=>{
+    t = Math.max(0, t-1);
+    const remaining = `${pad(Math.floor(t/60))}:${pad(t%60)}`;
+    document.getElementById('t-'+p.id).textContent = remaining;
+    const priceNow = Math.max(p.min, p.start - step * (p.seconds - t));
+    document.getElementById('price-'+p.id).textContent = fmt(priceNow);
+    if(t<=0){ clearInterval(iv); }
+  },1000);
+}
+
+products.forEach(renderCard);
+
+const soon = [
+  { name:"iPhone 13 128Go (Occasion A)", at: randIn(5,110) },
+  { name:"Aspirateur Dyson V8 (Occasion B)", at: randIn(15,120) },
+  { name:"AirPods Pro 2 (Neuf)", at: randIn(25,140) },
+];
+function randIn(min,max){ return Math.floor(Math.random()*(max-min+1))+min; }
+const soonList = document.getElementById('soon-list');
+soon.forEach(s => {
+  const h = new Date(Date.now() + s.at*60000);
+  const hh = pad(h.getHours()), mm = pad(h.getMinutes());
+  const li = document.createElement('li');
+  li.textContent = `${s.name} — mise en vente à ${hh}h${mm}`;
+  soonList.appendChild(li);
+});
+</script>
+</body>
+</html>
