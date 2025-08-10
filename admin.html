@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Admin Drup (Démo locale)</title>
+<style>
+body{font-family:Arial,sans-serif;max-width:900px;margin:auto;padding:20px;background:#fafafa;color:#111}
+h1{color:#4169E1}
+section{background:white;padding:16px;margin-bottom:20px;border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,.1)}
+label{display:block;margin-top:8px}
+input{padding:6px;width:100%;margin-top:4px}
+button{padding:8px 14px;margin-top:10px;background:#4169E1;color:white;border:none;border-radius:4px;cursor:pointer}
+button:hover{opacity:.9}
+ul{margin:0;padding-left:20px}
+</style>
+</head>
+<body>
+<h1>Back-office Drup (démo locale)</h1>
+<section>
+<h2>Produits en vente</h2>
+<div>
+<label>Nom<input id="live-name"></label>
+<label>Prix départ<input id="live-start" type="number"></label>
+<label>Prix min<input id="live-min" type="number"></label>
+<label>Durée (sec)<input id="live-sec" type="number" value="600"></label>
+<button onclick="addLive()">Ajouter</button>
+</div>
+<ul id="live-list"></ul>
+</section>
+
+<section>
+<h2>Produits à venir</h2>
+<div>
+<label>Nom<input id="soon-name"></label>
+<label>Heure prévue<input id="soon-at"></label>
+<button onclick="addSoon()">Ajouter</button>
+</div>
+<ul id="soon-list"></ul>
+</section>
+
+<section>
+<h2>Historique</h2>
+<div>
+<label>Nom<input id="past-name"></label>
+<label>Prix vendu<input id="past-price" type="number"></label>
+<label>Heure<input id="past-time"></label>
+<button onclick="addPast()">Ajouter</button>
+</div>
+<ul id="past-list"></ul>
+</section>
+
+<script>
+function save(key,arr){ localStorage.setItem(key,JSON.stringify(arr)); render(); }
+
+function addLive(){
+  let arr = JSON.parse(localStorage.getItem('drup_live')||'[]');
+  arr.push({id:Date.now(), name:val('live-name'), start:+val('live-start'), min:+val('live-min'), seconds:+val('live-sec')});
+  save('drup_live',arr);
+}
+function addSoon(){
+  let arr = JSON.parse(localStorage.getItem('drup_soon')||'[]');
+  arr.push({name:val('soon-name'), at:val('soon-at')});
+  save('drup_soon',arr);
+}
+function addPast(){
+  let arr = JSON.parse(localStorage.getItem('drup_past')||'[]');
+  arr.push({name:val('past-name'), price:+val('past-price'), time:val('past-time')});
+  save('drup_past',arr);
+}
+function del(key,index){
+  let arr = JSON.parse(localStorage.getItem(key)||'[]');
+  arr.splice(index,1);
+  save(key,arr);
+}
+function val(id){ return document.getElementById(id).value; }
+
+function render(){
+  ['drup_live','drup_soon','drup_past'].forEach(key=>{
+    let ul = document.getElementById(key.replace('drup_','')+'-list');
+    ul.innerHTML = '';
+    let arr = JSON.parse(localStorage.getItem(key)||'[]');
+    arr.forEach((p,i)=>{
+      let li = document.createElement('li');
+      li.textContent = JSON.stringify(p);
+      let b = document.createElement('button');
+      b.textContent = 'Supprimer';
+      b.onclick = ()=>del(key,i);
+      li.append(' ',b);
+      ul.appendChild(li);
+    });
+  });
+}
+render();
+</script>
+</body>
+</html>
